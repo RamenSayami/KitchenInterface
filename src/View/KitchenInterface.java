@@ -6,30 +6,29 @@ package View;
  * and open the template in the editor.
  */
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 import Controller.SocketClient;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 
 import com.example.ramen.menu.Model.Order;
 import com.example.ramen.menu.Model.OrderStatus;
-
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.LayoutStyle.ComponentPlacement;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 /**
  *
@@ -55,16 +54,22 @@ public class KitchenInterface extends javax.swing.JFrame {
 	public KitchenInterface() {
 		initComponents();
 		
-		this.serverAddr = "192.168.1.125";
-		this.port = 13000;
-		try {
-			client = new SocketClient(this);
-			clientThread = new Thread(client);
-			clientThread.start();
-			System.out.println("Server accepted request");
-		} catch (Exception ex) {
-			System.out.println("[Application > Me] : Server not found\n");
-		}
+//		ActorSystem system = ActorSystem.create();
+//		
+//		ActorRef master = system.actorOf(Props.create(FindServer.class));
+//		master.tell(n, null);
+//		
+		
+//		this.serverAddr = "172.16.4.138";
+//		this.port = 13000;
+//		try {
+//			client = new SocketClient(this);
+//			clientThread = new Thread(client);
+//			clientThread.start();
+//			System.out.println("Server accepted request");
+//		} catch (Exception ex) {
+//			System.out.println("[Application > Me] : Server not found\n");
+//		}
 	}
 
 	
@@ -216,8 +221,40 @@ public class KitchenInterface extends javax.swing.JFrame {
 	}// </editor-fold>//GEN-END:initComponents
 
 	private void StartButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_UnCookedButtonActionPerformed
-		
+		int timeout=500;
+        int port = 13000;
+
+        try {
+            String currentIP = InetAddress.getLocalHost().getHostAddress().toString();
+            System.out.println("Current Ip"+currentIP);
+            String subnet = getSubnet(currentIP);
+            System.out.println("subnet: " + subnet);
+
+            for (int i=1;i<254;i++){
+
+                String host = subnet + i;
+                System.out.println("Checking :" + host);
+
+                if (InetAddress.getByName(host).isReachable(timeout)){
+                    System.out.println(host + " is reachable");
+                    try {
+                        Socket connected = new Socket(subnet, port);
+                    }
+                    catch (Exception s) {
+                        System.out.println(s);
+                    }
+                }
+            }
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
 	}
+	public static String getSubnet(String currentIP) {
+        int firstSeparator = currentIP.lastIndexOf("/");
+        int lastSeparator = currentIP.lastIndexOf(".");
+        return currentIP.substring(firstSeparator+1, lastSeparator+1);
+    }
 
 	private void CookingButtonActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_CookingButtonActionPerformed
 		int[] index = OrderInTable.getSelectedRows();
